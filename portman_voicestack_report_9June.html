@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portman Dentex · VoiceStack POC Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+    /* VoiceStack brand palette */
+    --bg: #faf9ff;
+    --surface: #FFFFFF;
+    --ink: #0f0b2e;
+    --ink-soft: #1a1547;
+    --text: #1F2024;
+    --muted: #6b6890;
+    --muted-soft: #9c98b8;
+    --line: #e4e1f5;
+    --line-soft: #efedf9;
+    --primary: #4c3ce8;
+    --primary-bg: #e8e5ff;
+    --accent: #6e5cff;
+    --gold: #d4a853;
+    --crit: #C23B2A;
+    --crit-bg: #FBEDEA;
+    --warn: #B07418;
+    --warn-bg: #FAF0DE;
+    --good: #22c55e;
+    --good-bg: #dcfce7;
+    --good-deep: #15803d;
+    --neutral-bg: #efedf9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Geist', -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "ss02", "cv11";
+  }
+
+  .mono { font-family: 'Geist Mono', monospace; font-variant-numeric: tabular-nums; }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+
+
+  /* ============ BRAND BANNER (full-width strip) ============ */
+  .brand-banner {
+    background: #ffffff;
+    color: var(--ink);
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand-banner-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .brand-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-banner-left img {
+    height: 32px;
+    width: auto;
+    display: block;
+  }
+
+  .brand-banner-left .product {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-left: 1px solid var(--line);
+    padding-left: 14px;
+    line-height: 1.2;
+  }
+
+  .brand-banner-right {
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  @media (max-width: 760px) {
+    .brand-banner-inner { padding: 0 22px; flex-direction: column; gap: 8px; align-items: flex-start; }
+    .brand-banner-right { font-size: 10.5px; }
+  }
+
+  /* ============ MASTHEAD ============ */
+  .masthead {
+    padding: 32px 0 28px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .masthead-top .mark {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .masthead-top .mark img {
+    height: 22px;
+    width: auto;
+    border-radius: 3px;
+  }
+
+  .masthead-title {
+    font-size: clamp(32px, 4vw, 44px);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .masthead-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 740px;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  .masthead-meta {
+    display: flex;
+    gap: 36px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+
+  .masthead-meta div { display: flex; flex-direction: column; gap: 2px; }
+  .masthead-meta .label { color: var(--muted); font-size: 12px; }
+  .masthead-meta .val { color: var(--ink); font-weight: 500; }
+
+  /* ============ TABS NAV ============ */
+  .tabs-nav-wrap {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    border-bottom: 1px solid var(--line);
+    margin: 0 -48px 0;
+    padding: 0 48px;
+    box-shadow: 0 1px 0 var(--line);
+  }
+
+  .tabs-nav-wrap::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 5px;
+    width: 56px;
+    background: linear-gradient(to right, transparent, var(--bg) 70%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .tabs-nav {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-soft) transparent;
+    scroll-behavior: smooth;
+  }
+
+  .tabs-nav::-webkit-scrollbar { height: 5px; }
+  .tabs-nav::-webkit-scrollbar-track { background: transparent; }
+  .tabs-nav::-webkit-scrollbar-thumb { background: var(--muted-soft); border-radius: 3px; }
+  .tabs-nav::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  .tab-btn {
+    padding: 16px 16px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    position: relative;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .tab-btn:hover { color: var(--ink); }
+
+  .tab-btn.active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+
+  .tab-btn .tnum {
+    display: inline-block;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--muted-soft);
+    margin-right: 8px;
+  }
+
+  .tab-btn.active .tnum { color: var(--primary); }
+
+  /* ============ TAB PANEL ============ */
+  .tab-panel {
+    display: none;
+    padding: 40px 0 60px;
+    animation: fadeIn 0.25s ease;
+  }
+
+  .tab-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media print {
+    .tabs-nav-wrap { display: none; }
+    .tab-panel { display: block !important; page-break-before: always; padding: 20pt 0; }
+    .tab-panel:first-of-type { page-break-before: avoid; }
+  }
+
+  /* ============ SECTION HEAD ============ */
+  .sec-head {
+    margin-bottom: 28px;
+  }
+
+  .sec-kicker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .sec-kicker .tnum {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--ink);
+    color: var(--surface);
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'Geist Mono', monospace;
+  }
+
+  .sec-title {
+    font-size: 30px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 10px;
+    max-width: 820px;
+  }
+
+  .sec-lead {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 740px;
+    line-height: 1.5;
+  }
+
+  /* ============ HEADLINE METRICS ============ */
+  .hmetrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin: 28px 0 40px;
+  }
+
+  .hmetric {
+    background: var(--surface);
+    padding: 20px 22px;
+  }
+
+  .hmetric-label { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+  .hmetric-value {
+    font-size: 30px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hmetric-value .unit {
+    font-size: 17px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+
+  .hmetric-note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .hmetric-note.crit { color: var(--crit); }
+  .hmetric-note.good { color: var(--good-deep); }
+  .hmetric-note.warn { color: var(--warn); }
+  .hmetric-note.accent { color: var(--primary); }
+
+  /* ============ TAKEAWAYS ============ */
+  .takeaways {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 20px 0;
+  }
+
+  .take {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    align-items: start;
+  }
+
+  .take-num {
+    width: 24px; height: 24px;
+    background: var(--ink);
+    color: var(--surface);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .take-num.good { background: var(--good-deep); }
+  .take-num.warn { background: var(--warn); }
+  .take-num.crit { background: var(--crit); }
+  .take-num.accent { background: var(--primary); }
+
+  .take-body {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text);
+    padding-top: 2px;
+  }
+
+  .take-body strong { color: var(--ink); font-weight: 600; }
+  .take-body .crit-text { color: var(--crit); font-weight: 600; }
+  .take-body .good-text { color: var(--good-deep); font-weight: 600; }
+  .take-body .accent-text { color: var(--primary); font-weight: 600; }
+
+  /* ============ PANEL ============ */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 22px 24px;
+  }
+
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line-soft);
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .panel-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .panel-sub { font-size: 12px; color: var(--muted); }
+
+  .chart-canvas { position: relative; height: 240px; }
+  .chart-canvas.tall { height: 300px; }
+  .chart-canvas.xtall { height: 340px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+
+  /* ============ TABLE ============ */
+  .tbl-wrap {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    overflow-x: auto;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+  thead th {
+    background: var(--line-soft);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  thead th.num { text-align: right; }
+
+  tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--text);
+  }
+
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  tbody tr.total td {
+    background: var(--line-soft);
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .strong { font-weight: 600; color: var(--ink); }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 9px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pill.good { background: var(--good-bg); color: var(--good-deep); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.crit { background: var(--crit-bg); color: var(--crit); }
+  .pill.neutral { background: var(--line-soft); color: var(--muted); }
+  .pill.accent { background: var(--primary-bg); color: var(--primary); }
+
+  /* ============ CALLOUTS ============ */
+  .callout {
+    background: var(--ink);
+    color: var(--surface);
+    padding: 26px 30px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 26px;
+    align-items: center;
+    margin: 16px 0;
+  }
+
+  .callout.critical { background: var(--crit); }
+  .callout.good { background: var(--good-deep); }
+  .callout.accent { background: linear-gradient(135deg, var(--ink-soft) 0%, var(--primary) 100%); }
+
+  .callout-number {
+    font-size: 56px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .callout-number .unit { font-size: 32px; opacity: 0.75; }
+  .callout-number .sign { font-size: 32px; opacity: 0.6; margin-right: 4px; }
+
+  .callout-text {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  .callout-text .label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  /* ============ GLOSSARY NOTE ============ */
+  .gnote {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--primary);
+    padding: 14px 18px;
+    font-size: 13.5px;
+    color: var(--text);
+    margin-bottom: 20px;
+    line-height: 1.55;
+  }
+
+  .gnote .lbl {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary);
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .gnote strong { color: var(--ink); font-weight: 600; }
+
+  /* ============ SITE BANNER ============ */
+  .site-banner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 28px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .site-banner-cell {
+    padding: 22px 26px;
+    border-right: 1px solid var(--line);
+  }
+
+  .site-banner-cell:last-child { border-right: none; }
+
+  .site-banner-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .site-banner-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .site-banner-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .site-banner-stat .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  .site-banner-stat .val {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .site-banner-stat .val .unit {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* ============ FUNNEL ============ */
+  .funnel-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 130px;
+    gap: 20px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .funnel-row:last-child { border-bottom: none; }
+
+  .funnel-label {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .funnel-label .sub {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .funnel-bar {
+    height: 22px;
+    background: var(--line-soft);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .funnel-bar-fill {
+    height: 100%;
+    background: var(--ink);
+    transition: width 1s ease;
+  }
+
+  .funnel-bar-fill.crit { background: var(--crit); }
+  .funnel-bar-fill.warn { background: var(--warn); }
+  .funnel-bar-fill.good { background: var(--good-deep); }
+  .funnel-bar-fill.accent { background: var(--primary); }
+
+  .funnel-value {
+    text-align: right;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .funnel-value .pct {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  /* ============ HEATMAP ============ */
+  .heatmap-wrap { background: var(--surface); border: 1px solid var(--line); padding: 22px 24px; margin-bottom: 22px; }
+  .heatmap-row { display: grid; grid-template-columns: 80px 1fr 110px; gap: 12px; align-items: center; padding: 6px 0; }
+  .heatmap-row .label { font-size: 13px; color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .heatmap-row .bar { height: 28px; background: var(--line-soft); position: relative; border-radius: 2px; overflow: hidden; }
+  .heatmap-row .bar-fill { position: absolute; left: 0; top: 0; height: 100%; transition: width 0.6s ease; }
+  .heatmap-row .meta { font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .heatmap-row .meta strong { color: var(--ink); font-weight: 600; }
+
+  /* ============ PRIORITY CARDS ============ */
+  .priority-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .pcard {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--muted);
+    padding: 18px 22px;
+  }
+
+  .pcard.crit { border-left-color: var(--crit); }
+  .pcard.warn { border-left-color: var(--warn); }
+  .pcard.low { border-left-color: var(--good-deep); }
+  .pcard.accent { border-left-color: var(--primary); }
+
+  .pcard-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    letter-spacing: 0.02em;
+    font-family: 'Geist Mono', monospace;
+  }
+
+  .pcard.crit .pcard-tag { background: var(--crit-bg); color: var(--crit); }
+  .pcard.warn .pcard-tag { background: var(--warn-bg); color: var(--warn); }
+  .pcard.low .pcard-tag { background: var(--good-bg); color: var(--good-deep); }
+  .pcard.accent .pcard-tag { background: var(--primary-bg); color: var(--primary); }
+
+  .pcard-title {
+    font-size: 15.5px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .pcard-body {
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .pcard-action {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    padding-top: 10px;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .pcard-action .lbl {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ============ 30/60/90 ============ */
+  .plan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .pcol {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 22px 24px;
+  }
+
+  .pcol-phase { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 4px; }
+
+  .pcol-days {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .pcol-head {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .pcol ul { list-style: none; padding: 0; }
+
+  .pcol li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 10px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .pcol li::before {
+    content: "-";
+    position: absolute;
+    left: 0;
+    color: var(--muted-soft);
+  }
+
+  .pcol li strong { color: var(--ink); font-weight: 600; }
+
+  /* ============ SPLIT COLS ============ */
+  .reasons-split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+  .rcol {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 22px 24px;
+  }
+
+  .rcol h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .rcol h4 .tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+
+  .rcol h4 .tag.act { background: var(--crit-bg); color: var(--crit); }
+  .rcol h4 .tag.str { background: var(--good-bg); color: var(--good-deep); }
+  .rcol h4 .tag.neutral { background: var(--line-soft); color: var(--muted); }
+
+  .rrow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px dotted var(--line);
+    font-size: 14px;
+    align-items: baseline;
+  }
+
+  .rrow:last-child { border-bottom: none; }
+
+  .rrow-num {
+    font-family: 'Geist Mono', monospace;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .rrow-num strong { color: var(--ink); margin-right: 8px; font-weight: 600; }
+
+  .rcol-foot {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .rcol-foot strong { color: var(--ink); font-weight: 600; }
+
+  /* ============ FOOTER ============ */
+  footer {
+    padding: 40px 0 60px;
+    border-top: 1px solid var(--line);
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 12px;
+    color: var(--muted);
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  footer strong { color: var(--ink); font-weight: 500; display: block; margin-top: 2px; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 900px) {
+    .page { padding: 0 24px; }
+    .tabs-nav-wrap { margin: 0 -24px; padding: 0 24px; }
+    .hmetrics { grid-template-columns: repeat(2, 1fr); }
+    .two-col, .priority-grid, .reasons-split, .plan,
+    .three-col { grid-template-columns: 1fr; }
+    .callout { grid-template-columns: 1fr; gap: 14px; }
+    .callout-number { font-size: 44px; }
+    .funnel-row { grid-template-columns: 1fr; gap: 8px; }
+    .masthead-title { font-size: 28px; }
+    .site-banner { grid-template-columns: 1fr; }
+    .site-banner-cell { border-right: none; border-bottom: 1px solid var(--line); }
+    .site-banner-cell:last-child { border-bottom: none; }
+    .site-banner-grid { grid-template-columns: repeat(2, 1fr); }
+    .heatmap-row { grid-template-columns: 60px 1fr 90px; }
+  }
+
+  /* ============ COMPARE (Before vs Now) ============ */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 18px;
+    margin: 22px 0;
+  }
+
+  .compare-col {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 24px 26px;
+  }
+
+  .compare-col.muted { background: var(--line-soft); border-style: dashed; }
+
+  .compare-hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .compare-hdr h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .compare-col.muted .compare-hdr h3 { color: var(--muted); }
+
+  .compare-hdr .badge {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .compare-hdr .badge.before { background: var(--line); color: var(--muted); }
+  .compare-hdr .badge.after  { background: var(--primary-bg); color: var(--primary); }
+
+  .compare-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .compare-list li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--line);
+    font-size: 13.5px;
+    align-items: baseline;
+  }
+
+  .compare-list li:last-child { border-bottom: none; }
+
+  .compare-list .label { color: var(--muted); }
+  .compare-list .val   { color: var(--ink); font-weight: 500; font-family: 'Geist Mono', monospace; }
+  .compare-list .new   { color: var(--primary); font-weight: 500; font-family: 'Geist Mono', monospace; }
+
+  .compare-section-lbl {
+    font-size: 11px;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 16px 0 8px;
+    font-weight: 600;
+  }
+
+  .compare-section-lbl:first-of-type { margin-top: 4px; }
+
+  /* ============ MONEY ROWS ============ */
+  .money-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 14px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .money-row:first-child { padding-top: 0; }
+  .money-row:last-child { border-bottom: none; }
+
+  .money-row .m-label { font-size: 14px; color: var(--text); line-height: 1.45; }
+
+  .money-row .m-val {
+    font-family: 'Geist Mono', monospace;
+    text-align: right;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .money-row .m-val.dim { color: var(--muted-soft); font-weight: 400; }
+  .money-row .m-val.good { color: var(--good-deep); }
+
+  .money-total {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: baseline;
+    padding: 18px 22px;
+    background: var(--ink);
+    color: var(--surface);
+    margin-top: 14px;
+  }
+
+  .money-total .m-label { font-size: 14px; font-weight: 500; }
+  .money-total .m-val { font-family: 'Geist Mono', monospace; font-size: 18px; font-weight: 500; }
+
+  /* ============ AGENT TABLE TWEAKS ============ */
+  .stat-num.big { font-size: 36px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .stat-num.big.good { color: var(--good-deep); }
+  .stat-num.big.warn { color: var(--warn); }
+  .stat-num.big.crit { color: var(--crit); }
+  .stat-num.big.accent { color: var(--primary); }
+  .stat-num.big.gold { color: var(--gold); }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 500;
+  }
+
+  .stat-note { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+
+  /* ============ SIMPLE BAR LIST ============ */
+  .barlist .bar-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 60px;
+    gap: 14px;
+    align-items: center;
+    padding: 7px 0;
+  }
+
+  .barlist .b-label { font-size: 13.5px; color: var(--ink); font-weight: 500; }
+  .barlist .b-track { height: 22px; background: var(--line-soft); border-radius: 2px; overflow: hidden; }
+  .barlist .b-fill  { height: 100%; background: var(--primary); transition: width 0.6s ease; }
+  .barlist .b-fill.good { background: var(--good-deep); }
+  .barlist .b-fill.warn { background: var(--warn); }
+  .barlist .b-fill.crit { background: var(--crit); }
+  .barlist .b-fill.gold { background: var(--gold); }
+  .barlist .b-fill.muted { background: var(--muted-soft); }
+  .barlist .b-val { font-family: 'Geist Mono', monospace; font-weight: 500; color: var(--ink); text-align: right; font-size: 14px; }
+
+  /* ============ GRID HELPERS ============ */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  /* ============ STATS CARD ============ */
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 22px 24px;
+  }
+
+  /* ============ MOBILE EXTRA ============ */
+  @media (max-width: 900px) {
+    .compare { grid-template-columns: 1fr; }
+    .money-row { grid-template-columns: 1fr; gap: 4px; }
+    .money-row .m-val { text-align: left; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .barlist .bar-row { grid-template-columns: 1fr; gap: 4px; }
+  }
+  /* gnote severity variants (data caveats, warnings) */
+  .gnote.crit { border-left-color: var(--crit); background: var(--crit-bg); }
+  .gnote.crit .lbl { color: var(--crit); }
+  .gnote.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+  .gnote.warn .lbl { color: var(--warn); }
+  .gnote em { font-style: italic; }
+
+  /* extension-load stacked bar */
+  .ext-bar-track { background: var(--line-soft); height: 26px; border-radius: 4px; overflow: hidden; display: flex; }
+  .ext-bar-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; }
+
+</style>
+</head>
+<body>
+
+<div class="brand-banner">
+  <div class="brand-banner-inner">
+    <div class="brand-banner-left">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAB4AgQDASIAAhEBAxEB/8QAHQABAAMBAQADAQAAAAAAAAAAAAcICQYFAQIDBP/EAFIQAAEDAwIDAwUKCAsHBAMAAAEAAgMEBQYHEQgSITFBURMiYXGBFBcyN1Z1kZSy0QkVFkJSdKGzGCM2OENicoKSsbQkJTN2k8HSNERTZnODov/EABsBAQACAwEBAAAAAAAAAAAAAAADBwIFBgEE/8QALxEBAAECAwUGBgMBAAAAAAAAAAECAwQFEQYhMUGREhQWU3LBNDVRYaGxE3HR8P/aAAwDAQACEQMRAD8AuWiKCtftYK3Hbm7GcYfGyuY0GqqnNDvJEjcNaD05tiDuezdfbl+X3swvRZsxv/ER9ZeTOidOYeKcw8QqLP1Fzp7y45Zd9ydztUuA+gL498POflZePrTvvXU+CMT5tP5YdtermHiE5h4hUV98POflZePrTvvT3w85+Vl4+tO+9PA+J82npJ216uYeITmHiFRX3w85+Vl4+tO+9PfDzn5WXj607708D4nzaeknbXq5h4hOYeIVFffDzn5WXj6077098POflZePrTvvTwPifNp6SdtermHiE5h4hUV98POflZePrTvvT3w85+Vl4+tO+9PA+J82npJ216uYeK+VRmk1KzymqGTx5XdHPYdwJJi9p9bXbgqyOgmqEmc0c1vurY47vSNDnlg2bMzs5gO479o9K1uZ7MYrL7X80zFVMcdOTKK4lKqIi5tkIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiIB7FRfV9xfqjkpcST+MZR18A5XoPYVRXVz4z8l+cpvtFdtsR8Tc9PujuOWREVlIxERAREQEREBERAUpcLkj2at0jWuID6WZrh4jbf/ALKLVKHC/wDG7Q/q832VrM635fe9M/p7HGFw0RFSScREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQD2FUV1c+M/JfnKb7RV6j2FUV1c+M/JfnKb7RXbbEfE3PT7o7nJyyIv1o6aesq4aSlidNPNI2OONo3LnE7AD1lWTMxEayjdto9pzV6hXWpgbVOoaKlj5pqkR8+zj8FoG43J6nt7ApWHDNR7fywqPqI/81KmkuIQYVhlJaGBrqkjytXKP6SVwG/sHYPQF1yq3MtqsZXiau619miN0bo6745pYojTerHm2gVBjeL197fl7nCkhdIGSUYaHkdjd+c7bnp2KCFPPFbnHu25RYbb5d4aQiWuc09HSEbtZ7Adz6SPBQMu32frxl3CRdxdWs1b43RGkcuERx4sKtNdwp1wfh6qL1jdHdbtfZLbPVMEgpm0vOWNPwdyXDqR1226brk+HzCPywzaOWsiLrXbiJ6jfse78xntI3PoBVyWgNaGgbAdi0m0+0F3CXKcPhatKuMzun+o39ej2inXfKv38Gaj+WFR9RH/mor1m0/pdP7rRUEF7FykqYnSPaYfJujAOw3G5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" alt="VoiceStack">
+      <span class="product">Analytics &middot; POC Review</span>
+    </div>
+    <div class="brand-banner-right">Confidential</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="masthead-top">
+      <span style="text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; font-weight: 500; color: var(--primary);">VoiceStack Analytics</span>
+      <span>Confidential &middot; POC Review for Leadership</span>
+    </div>
+    <h1 class="masthead-title">Portman Dentex · VoiceStack POC Review</h1>
+    <p class="masthead-sub">A four-practice proof-of-concept across London - SmileMore Dental Centre, Newmarket - Terrace Dental, Rugby - Jones Dental &amp; Implant Clinic and Newark - Kirkgate Dental Surgery. Every answer rate is computed against each practice's own business hours, with the all-hours figure shown alongside. Each site went live on a different date; the go-live day is excluded and data starts the next working day.</p>
+    <div class="masthead-meta">
+      <div><span class="label">Reporting period</span><span class="val">19 May - 5 June 2026 (each site from day after go-live)</span></div>
+      <div><span class="label">Practices</span><span class="val">4</span></div>
+      <div><span class="label">Calls analysed</span><span class="val">3,276 (inbound &amp; outbound)</span></div>
+      <div><span class="label">High-value opportunities</span><span class="val">213</span></div>
+    </div>
+  </header>
+
+  <div class="tabs-nav-wrap">
+    <nav class="tabs-nav" role="tablist">
+      <button class="tab-btn active" data-tab="snapshot"><span class="tnum">01</span>Snapshot</button>
+<button class="tab-btn" data-tab="p0"><span class="tnum">02</span>London</button>
+<button class="tab-btn" data-tab="p1"><span class="tnum">03</span>Newmarket</button>
+<button class="tab-btn" data-tab="p2"><span class="tnum">04</span>Rugby</button>
+<button class="tab-btn" data-tab="p3"><span class="tnum">05</span>Newark</button>
+      <button class="tab-btn" data-tab="extload"><span class="tnum">06</span>Extension Load</button>
+      <button class="tab-btn" data-tab="missed"><span class="tnum">07</span>Missed Calls</button>
+      <button class="tab-btn" data-tab="opps"><span class="tnum">08</span>Opportunities</button>
+      <button class="tab-btn" data-tab="cancels"><span class="tnum">09</span>Cancellations</button>
+      <button class="tab-btn" data-tab="team"><span class="tnum">10</span>Team &amp; Coaching</button>
+      <button class="tab-btn" data-tab="watch"><span class="tnum">11</span>What to Watch</button>
+    </nav>
+  </div>
+
+  <!-- 01 SNAPSHOT -->
+  <div class="tab-panel active" id="tab-snapshot">
+    <div class="gnote" style="margin-bottom:22px;"><span class="lbl">READ THIS FIRST &middot; DATA WINDOW</span>
+    Each site now has <strong>10–18 days of data</strong>, depending on go-live date. That is enough to <strong>see early patterns</strong> across 4 practices but not yet enough to draw strong conclusions or recommend changes with confidence. Treat the figures below as an early read; another few weeks of data will let trends settle and make any operational suggestions much firmer.</div>
+
+    <div class="hmetrics">
+      <div class="hmetric"><div class="hmetric-label">Calls now visible</div><div class="hmetric-value">3,276</div><div class="hmetric-note">Every call tagged, scored, searchable across 4 sites</div></div>
+      <div class="hmetric"><div class="hmetric-label">High-value opportunities flagged</div><div class="hmetric-value">213</div><div class="hmetric-note good">129 rated High intent</div></div>
+      <div class="hmetric"><div class="hmetric-label">Business-hours answer rate</div><div class="hmetric-value">71.9–82.5%</div><div class="hmetric-note">Range across the four sites</div></div>
+      <div class="hmetric"><div class="hmetric-label">Missed-call callback range</div><div class="hmetric-value">3m–13m</div><div class="hmetric-note accent">Fastest to slowest across the four sites</div></div>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-kicker"><span class="tnum">01.1</span> Early observations</div>
+      <h2 class="sec-title">What the data shows so far</h2>
+      <p class="sec-lead">Observations, not recommendations. The trial is still young; the value of these early reads is in pointing to what to watch as more data comes in.</p>
+    </div>
+    <div class="grid-2" style="gap:14px;">
+      <div class="take"><div class="take-num">1</div><div class="take-body"><strong>Phones are being answered at a reasonable rate.</strong> Business-hours answer rates so far run from 71.9% (Newmarket) to 82.5% (Rugby). Rates are calculated against each practice's own opening hours, so they are comparable across sites; with only days of data per site, expect these to move as more weeks roll in.</div></div>
+      <div class="take"><div class="take-num">2</div><div class="take-body"><strong>Pre-queue drop sits between 11.5% and 16.8% across sites.</strong> That is the share of inbound callers who hang up inside the IVR before reaching the queue. Worth watching over the next few weeks to see whether the range tightens, widens, or shifts as more data accumulates.</div></div>
+      <div class="take"><div class="take-num accent">3</div><div class="take-body"><strong>213 high-value opportunities have already been flagged</strong> - calls VoiceStack scored as likely to convert. 129 were rated High intent. These were invisible before the trial; the next-step value depends on whether the team works the list.</div></div>
+      <div class="take"><div class="take-num">4</div><div class="take-body"><strong>Missed-call callbacks are now measurable.</strong> Response times currently span 3m 31s (Rugby) to 13m 11s (Newark). The metric did not exist before; even before any target is set, having it visible is the change.</div></div>
+      <div class="take"><div class="take-num">5</div><div class="take-body"><strong>Call Closing scores vary across sites.</strong> Across the group, "Needs Improvement" appears on 29.8% of scored calls - but the spread between sites is wide, so a group-wide reading would be premature. Re-check once each site has a few more weeks of scored calls.</div></div>
+    </div>
+
+    <div class="sec-head" style="margin-top:34px;">
+      <div class="sec-kicker"><span class="tnum">01.2</span> Per-site summary</div>
+      <h2 class="sec-title">The four practices, side by side</h2>
+      <p class="sec-lead">Each site's totals from VoiceStack over its days of trial data. Volumes are not directly comparable - sites went live on different dates - but rates and the visibility this enables are.</p>
+    </div>
+    <div class="grid-2" style="gap:18px;">
+<div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">London - SmileMore Dental Centre</div>
+        <div class="panel-sub">18 days of data<br>Reception phones only</div>
+      </div>
+      <ul class="compare-list" style="margin-top:6px;">
+        <li><span class="label">Total calls</span><span class="new">441</span></li>
+        <li><span class="label">Inbound / outbound</span><span class="new">233 / 208</span></li>
+        <li><span class="label">Answered (in-hours)</span><span class="new">160 (81.2%)</span></li>
+        <li><span class="label">Answered (all-hours)</span><span class="new">161 (69.1%)</span></li>
+        <li><span class="label">High-value opportunities</span><span class="new">30</span></li>
+        <li><span class="label">Missed-call callback</span><span class="new">13m 10s</span></li>
+        <li><span class="label">Avg wait in queue</span><span class="new">12s</span></li>
+      </ul>
+    </div>
+<div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Newmarket - Terrace Dental</div>
+        <div class="panel-sub">17 days of data<br>Reception phones only</div>
+      </div>
+      <ul class="compare-list" style="margin-top:6px;">
+        <li><span class="label">Total calls</span><span class="new">952</span></li>
+        <li><span class="label">Inbound / outbound</span><span class="new">593 / 359</span></li>
+        <li><span class="label">Answered (in-hours)</span><span class="new">389 (71.9%)</span></li>
+        <li><span class="label">Answered (all-hours)</span><span class="new">389 (65.6%)</span></li>
+        <li><span class="label">High-value opportunities</span><span class="new">72</span></li>
+        <li><span class="label">Missed-call callback</span><span class="new">8m 48s</span></li>
+        <li><span class="label">Avg wait in queue</span><span class="new">49s</span></li>
+      </ul>
+    </div>
+<div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Rugby - Jones Dental &amp; Implant Clinic</div>
+        <div class="panel-sub">15 days of data<br>2 reception + 1 back office + 2 office phones (deeper queue)</div>
+      </div>
+      <ul class="compare-list" style="margin-top:6px;">
+        <li><span class="label">Total calls</span><span class="new">1,231</span></li>
+        <li><span class="label">Inbound / outbound</span><span class="new">598 / 633</span></li>
+        <li><span class="label">Answered (in-hours)</span><span class="new">480 (82.5%)</span></li>
+        <li><span class="label">Answered (all-hours)</span><span class="new">480 (80.3%)</span></li>
+        <li><span class="label">High-value opportunities</span><span class="new">58</span></li>
+        <li><span class="label">Missed-call callback</span><span class="new">3m 31s</span></li>
+        <li><span class="label">Avg wait in queue</span><span class="new">16s</span></li>
+      </ul>
+    </div>
+<div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Newark - Kirkgate Dental Surgery</div>
+        <div class="panel-sub">10 days of data<br>Reception phones only</div>
+      </div>
+      <ul class="compare-list" style="margin-top:6px;">
+        <li><span class="label">Total calls</span><span class="new">652</span></li>
+        <li><span class="label">Inbound / outbound</span><span class="new">395 / 257</span></li>
+        <li><span class="label">Answered (in-hours)</span><span class="new">310 (79.9%)</span></li>
+        <li><span class="label">Answered (all-hours)</span><span class="new">310 (78.5%)</span></li>
+        <li><span class="label">High-value opportunities</span><span class="new">53</span></li>
+        <li><span class="label">Missed-call callback</span><span class="new">13m 11s</span></li>
+        <li><span class="label">Avg wait in queue</span><span class="new">26s</span></li>
+      </ul>
+    </div>
+    </div>
+
+    <div class="sec-head" style="margin-top:34px;">
+      <div class="sec-kicker"><span class="tnum">01.3</span> Period scorecard</div>
+      <h2 class="sec-title">Key metrics at a glance</h2>
+      <p class="sec-lead">Rates are comparable across sites; volumes depend on how many days of data each site has. Answer rates are business-hours unless marked all-hours.</p>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Metric</th><th class="num">London</th><th class="num">Newmarket</th><th class="num">Rugby</th><th class="num">Newark</th><th class="num">Combined</th></tr></thead>
+      <tbody>
+<tr><td class="strong">Go-live date</td><td class="num">18 May</td><td class="num">19 May</td><td class="num">21 May</td><td class="num">26 May</td><td class="num">-</td></tr>
+<tr><td class="strong">Days of data (after go-live)</td><td class="num">18</td><td class="num">17</td><td class="num">15</td><td class="num">10</td><td class="num">-</td></tr>
+<tr><td class="strong">Total calls handled</td><td class="num">441</td><td class="num">952</td><td class="num">1231</td><td class="num">652</td><td class="num">3276</td></tr>
+<tr><td class="strong">Inbound calls</td><td class="num">233</td><td class="num">593</td><td class="num">598</td><td class="num">395</td><td class="num">1819</td></tr>
+<tr><td class="strong">Outbound calls</td><td class="num">208</td><td class="num">359</td><td class="num">633</td><td class="num">257</td><td class="num">1457</td></tr>
+<tr><td class="strong">Answer rate - business hours</td><td class="num">81.2%</td><td class="num">71.9%</td><td class="num">82.5%</td><td class="num">79.9%</td><td class="num">-</td></tr>
+<tr><td class="strong">Answer rate - all hours</td><td class="num">69.1%</td><td class="num">65.6%</td><td class="num">80.3%</td><td class="num">78.5%</td><td class="num">-</td></tr>
+<tr><td class="strong">Pre-queue drop - business hours</td><td class="num">16.8%</td><td class="num">11.5%</td><td class="num">13.1%</td><td class="num">16.5%</td><td class="num">-</td></tr>
+<tr><td class="strong">Missed in queue - business hours</td><td class="num">2.0%</td><td class="num">14.8%</td><td class="num">4.1%</td><td class="num">3.6%</td><td class="num">-</td></tr>
+<tr><td class="strong">Missed-call response time</td><td class="num">13m 10s</td><td class="num">8m 48s</td><td class="num">3m 31s</td><td class="num">13m 11s</td><td class="num">-</td></tr>
+<tr><td class="strong">Avg wait in queue</td><td class="num">12s</td><td class="num">49s</td><td class="num">16s</td><td class="num">26s</td><td class="num">-</td></tr>
+<tr><td class="strong">High-value opportunities</td><td class="num">30</td><td class="num">72</td><td class="num">58</td><td class="num">53</td><td class="num">213</td></tr>
+<tr><td class="strong">Cancellations saved</td><td class="num">1/6</td><td class="num">1/18</td><td class="num">3/28</td><td class="num">2/18</td><td class="num">7</td></tr>
+      </tbody>
+    </table></div>
+    <p style="font-size:13px; color:var(--muted); margin-top:16px; font-style:italic;">
+      Answer rate = Answered &divide; Inbound, within each practice's stated opening hours. Outbound calls are reported separately and never blended into the answer rate. The go-live day for each site is excluded to remove set-up and test calls.
+    </p>
+  </div>
+
+  <!-- PRACTICE TABS (one per site, starting at 02) -->
+<div class="tab-panel" id="tab-p0">
+    <div class="site-banner">
+      <div class="site-banner-cell">
+        <div class="site-banner-name">London - SmileMore Dental Centre</div>
+        <div class="site-banner-sub">Live 18 May &middot; 18 days of data &middot; Reception phones only</div>
+        <div class="site-banner-grid">
+          <div class="site-banner-stat"><div class="lbl">Inbound</div><div class="val">233</div></div>
+          <div class="site-banner-stat"><div class="lbl">Outbound</div><div class="val">208</div></div>
+          <div class="site-banner-stat"><div class="lbl">AR (business hours)</div><div class="val good">81.2<span class="unit">%</span></div></div>
+        </div>
+      </div>
+      <div class="site-banner-cell">
+        <div class="site-banner-name">Context</div>
+        <div class="site-banner-sub">Out-of-hours load &amp; callback speed</div>
+        <div class="site-banner-grid">
+          <div class="site-banner-stat"><div class="lbl">All-hours AR</div><div class="val">69.1<span class="unit">%</span></div></div>
+          <div class="site-banner-stat"><div class="lbl">Missed-call callback</div><div class="val">13m 10s</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gnote" style="margin-top:22px;"><span class="lbl">HOW TO READ THIS</span>
+    The headline answer rate is calculated against this practice's own opening hours, so it is comparable across sites and reflects the calls the team could realistically pick up. 18 May (go-live day) is excluded to remove set-up and test calls; data starts the next working day.</div>
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">Trend</span> Weekly</div>
+      <h2 class="sec-title">In-hours volume &amp; answer rate by week</h2>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><div class="panel-title">London - SmileMore Dental Centre &middot; weekly (business hours)</div><div class="panel-sub">Bars: inbound calls &middot; Line: answer rate</div></div>
+      <div class="chart-canvas tall"><canvas id="p0WeeklyChart"></canvas></div>
+    </div>
+    
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">Mix</span> Disposition</div>
+      <h2 class="sec-title">Where inbound calls go (business hours)</h2>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><div class="panel-title">London - SmileMore Dental Centre &middot; inbound disposition</div><div class="panel-sub">197 in-hours inbound calls</div></div>
+      <div style="padding-top:8px;">
+<div class="funnel-row"><div class="funnel-label">Answered (reached an agent live)</div><div class="funnel-bar"><div class="funnel-bar-fill good" style="width: 81.2%"></div></div><div class="funnel-value">160<span class="pct">81.2%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Pre-queue drop (gave up in IVR menu)</div><div class="funnel-bar"><div class="funnel-bar-fill warn" style="width: 16.8%"></div></div><div class="funnel-value">33<span class="pct">16.8%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Capacity-missed (all lines busy)</div><div class="funnel-bar"><div class="funnel-bar-fill warn" style="width: 0.0%"></div></div><div class="funnel-value">0<span class="pct">0.0%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Missed (rang the queue, no pickup)</div><div class="funnel-bar"><div class="funnel-bar-fill crit" style="width: 2.0%"></div></div><div class="funnel-value">4<span class="pct">2.0%</span></div></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel"><div class="panel-head"><div class="panel-title">Answer rate by hour</div><div class="panel-sub">In-hours, dot colour flags weak slots</div></div><div class="chart-canvas tall"><canvas id="p0HourlyChart"></canvas></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">Answer rate by day</div><div class="panel-sub">In-hours volume &amp; answer rate</div></div><div class="chart-canvas tall"><canvas id="p0DowChart"></canvas></div></div>
+    </div>
+
+    <div class="two-col" style="margin-top:22px;">
+      <div class="panel"><div class="panel-head"><div class="panel-title">Why patients called</div><div class="panel-sub">Top call purposes</div></div><div style="padding-top:10px;"><div class="rrow"><span>New Appointment Booking</span><span class="rrow-num"><strong>52</strong></span></div>
+<div class="rrow"><span>Appointment Rescheduling</span><span class="rrow-num"><strong>41</strong></span></div>
+<div class="rrow"><span>Existing Appointment Inquiry</span><span class="rrow-num"><strong>16</strong></span></div>
+<div class="rrow"><span>Others</span><span class="rrow-num"><strong>12</strong></span></div>
+<div class="rrow"><span>General Inquiry</span><span class="rrow-num"><strong>11</strong></span></div>
+<div class="rrow"><span>Payment Inquiry</span><span class="rrow-num"><strong>7</strong></span></div></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">Treatment interest</div><div class="panel-sub">Top categories mentioned</div></div><div style="padding-top:10px;"><div class="rrow"><span>Cleaning</span><span class="rrow-num"><strong>20</strong></span></div>
+<div class="rrow"><span>Check-Up</span><span class="rrow-num"><strong>8</strong></span></div>
+<div class="rrow"><span>Extraction</span><span class="rrow-num"><strong>3</strong></span></div>
+<div class="rrow"><span>Retainer</span><span class="rrow-num"><strong>3</strong></span></div>
+<div class="rrow"><span>Crowns</span><span class="rrow-num"><strong>3</strong></span></div>
+<div class="rrow"><span>Fillings</span><span class="rrow-num"><strong>2</strong></span></div></div></div>
+    </div>
+  </div>
+<div class="tab-panel" id="tab-p1">
+    <div class="site-banner">
+      <div class="site-banner-cell">
+        <div class="site-banner-name">Newmarket - Terrace Dental</div>
+        <div class="site-banner-sub">Live 19 May &middot; 17 days of data &middot; Reception phones only</div>
+        <div class="site-banner-grid">
+          <div class="site-banner-stat"><div class="lbl">Inbound</div><div class="val">593</div></div>
+          <div class="site-banner-stat"><div class="lbl">Outbound</div><div class="val">359</div></div>
+          <div class="site-banner-stat"><div class="lbl">AR (business hours)</div><div class="val warn">71.9<span class="unit">%</span></div></div>
+        </div>
+      </div>
+      <div class="site-banner-cell">
+        <div class="site-banner-name">Context</div>
+        <div class="site-banner-sub">Out-of-hours load &amp; callback speed</div>
+        <div class="site-banner-grid">
+          <div class="site-banner-stat"><div class="lbl">All-hours AR</div><div class="val">65.6<span class="unit">%</span></div></div>
+          <div class="site-banner-stat"><div class="lbl">Missed-call callback</div><div class="val">8m 48s</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gnote" style="margin-top:22px;"><span class="lbl">HOW TO READ THIS</span>
+    The headline answer rate is calculated against this practice's own opening hours, so it is comparable across sites and reflects the calls the team could realistically pick up. 19 May (go-live day) is excluded to remove set-up and test calls; data starts the next working day.</div>
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">Trend</span> Weekly</div>
+      <h2 class="sec-title">In-hours volume &amp; answer rate by week</h2>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><div class="panel-title">Newmarket - Terrace Dental &middot; weekly (business hours)</div><div class="panel-sub">Bars: inbound calls &middot; Line: answer rate</div></div>
+      <div class="chart-canvas tall"><canvas id="p1WeeklyChart"></canvas></div>
+    </div>
+    
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">Mix</span> Disposition</div>
+      <h2 class="sec-title">Where inbound calls go (business hours)</h2>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><div class="panel-title">Newmarket - Terrace Dental &middot; inbound disposition</div><div class="panel-sub">541 in-hours inbound calls</div></div>
+      <div style="padding-top:8px;">
+<div class="funnel-row"><div class="funnel-label">Answered (reached an agent live)</div><div class="funnel-bar"><div class="funnel-bar-fill good" style="width: 71.9%"></div></div><div class="funnel-value">389<span class="pct">71.9%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Pre-queue drop (gave up in IVR menu)</div><div class="funnel-bar"><div class="funnel-bar-fill warn" style="width: 11.5%"></div></div><div class="funnel-value">62<span class="pct">11.5%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Capacity-missed (all lines busy)</div><div class="funnel-bar"><div class="funnel-bar-fill warn" style="width: 1.8%"></div></div><div class="funnel-value">10<span class="pct">1.8%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Missed (rang the queue, no pickup)</div><div class="funnel-bar"><div class="funnel-bar-fill crit" style="width: 14.8%"></div></div><div class="funnel-value">80<span class="pct">14.8%</span></div></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel"><div class="panel-head"><div class="panel-title">Answer rate by hour</div><div class="panel-sub">In-hours, dot colour flags weak slots</div></div><div class="chart-canvas tall"><canvas id="p1HourlyChart"></canvas></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">Answer rate by day</div><div class="panel-sub">In-hours volume &amp; answer rate</div></div><div class="chart-canvas tall"><canvas id="p1DowChart"></canvas></div></div>
+    </div>
+
+    <div class="two-col" style="margin-top:22px;">
+      <div class="panel"><div class="panel-head"><div class="panel-title">Why patients called</div><div class="panel-sub">Top call purposes</div></div><div style="padding-top:10px;"><div class="rrow"><span>Appointment Rescheduling</span><span class="rrow-num"><strong>100</strong></span></div>
+<div class="rrow"><span>New Appointment Booking</span><span class="rrow-num"><strong>100</strong></span></div>
+<div class="rrow"><span>Existing Appointment Inquiry</span><span class="rrow-num"><strong>49</strong></span></div>
+<div class="rrow"><span>Others</span><span class="rrow-num"><strong>23</strong></span></div>
+<div class="rrow"><span>Emergency Appointment</span><span class="rrow-num"><strong>20</strong></span></div>
+<div class="rrow"><span>Appointment Cancellation</span><span class="rrow-num"><strong>18</strong></span></div></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">Treatment interest</div><div class="panel-sub">Top categories mentioned</div></div><div style="padding-top:10px;"><div class="rrow"><span>Check-Up</span><span class="rrow-num"><strong>34</strong></span></div>
+<div class="rrow"><span>Cleaning</span><span class="rrow-num"><strong>33</strong></span></div>
+<div class="rrow"><span>Fillings</span><span class="rrow-num"><strong>12</strong></span></div>
+<div class="rrow"><span>Extraction</span><span class="rrow-num"><strong>9</strong></span></div>
+<div class="rrow"><span>Emergency</span><span class="rrow-num"><strong>8</strong></span></div>
+<div class="rrow"><span>Check-Up, Cleaning</span><span class="rrow-num"><strong>8</strong></span></div></div></div>
+    </div>
+  </div>
+<div class="tab-panel" id="tab-p2">
+    <div class="site-banner">
+      <div class="site-banner-cell">
+        <div class="site-banner-name">Rugby - Jones Dental &amp; Implant Clinic</div>
+        <div class="site-banner-sub">Live 21 May &middot; 15 days of data &middot; 2 reception + 1 back office + 2 office phones (deeper queue)</div>
+        <div class="site-banner-grid">
+          <div class="site-banner-stat"><div class="lbl">Inbound</div><div class="val">598</div></div>
+          <div class="site-banner-stat"><div class="lbl">Outbound</div><div class="val">633</div></div>
+          <div class="site-banner-stat"><div class="lbl">AR (business hours)</div><div class="val good">82.5<span class="unit">%</span></div></div>
+        </div>
+      </div>
+      <div class="site-banner-cell">
+        <div class="site-banner-name">Context</div>
+        <div class="site-banner-sub">Out-of-hours load &amp; callback speed</div>
+        <div class="site-banner-grid">
+          <div class="site-banner-stat"><div class="lbl">All-hours AR</div><div class="val">80.3<span class="unit">%</span></div></div>
+          <div class="site-banner-stat"><div class="lbl">Missed-call callback</div><div class="val">3m 31s</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gnote" style="margin-top:22px;"><span class="lbl">HOW TO READ THIS</span>
+    The headline answer rate is calculated against this practice's own opening hours, so it is comparable across sites and reflects the calls the team could realistically pick up. 21 May (go-live day) is excluded to remove set-up and test calls; data starts the next working day.</div>
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">Trend</span> Weekly</div>
+      <h2 class="sec-title">In-hours volume &amp; answer rate by week</h2>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><div class="panel-title">Rugby - Jones Dental &amp; Implant Clinic &middot; weekly (business hours)</div><div class="panel-sub">Bars: inbound calls &middot; Line: answer rate</div></div>
+      <div class="chart-canvas tall"><canvas id="p2WeeklyChart"></canvas></div>
+    </div>
+    
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">Mix</span> Disposition</div>
+      <h2 class="sec-title">Where inbound calls go (business hours)</h2>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><div class="panel-title">Rugby - Jones Dental &amp; Implant Clinic &middot; inbound disposition</div><div class="panel-sub">582 in-hours inbound calls</div></div>
+      <div style="padding-top:8px;">
+<div class="funnel-row"><div class="funnel-label">Answered (reached an agent live)</div><div class="funnel-bar"><div class="funnel-bar-fill good" style="width: 82.5%"></div></div><div class="funnel-value">480<span class="pct">82.5%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Pre-queue drop (gave up in IVR menu)</div><div class="funnel-bar"><div class="funnel-bar-fill warn" style="width: 13.1%"></div></div><div class="funnel-value">76<span class="pct">13.1%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Capacity-missed (all lines busy)</div><div class="funnel-bar"><div class="funnel-bar-fill warn" style="width: 0.0%"></div></div><div class="funnel-value">0<span class="pct">0.0%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Missed (rang the queue, no pickup)</div><div class="funnel-bar"><div class="funnel-bar-fill crit" style="width: 4.1%"></div></div><div class="funnel-value">24<span class="pct">4.1%</span></div></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel"><div class="panel-head"><div class="panel-title">Answer rate by hour</div><div class="panel-sub">In-hours, dot colour flags weak slots</div></div><div class="chart-canvas tall"><canvas id="p2HourlyChart"></canvas></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">Answer rate by day</div><div class="panel-sub">In-hours volume &amp; answer rate</div></div><div class="chart-canvas tall"><canvas id="p2DowChart"></canvas></div></div>
+    </div>
+
+    <div class="two-col" style="margin-top:22px;">
+      <div class="panel"><div class="panel-head"><div class="panel-title">Why patients called</div><div class="panel-sub">Top call purposes</div></div><div style="padding-top:10px;"><div class="rrow"><span>Appointment Rescheduling</span><span class="rrow-num"><strong>163</strong></span></div>
+<div class="rrow"><span>New Appointment Booking</span><span class="rrow-num"><strong>112</strong></span></div>
+<div class="rrow"><span>Existing Appointment Inquiry</span><span class="rrow-num"><strong>41</strong></span></div>
+<div class="rrow"><span>Appointment Cancellation</span><span class="rrow-num"><strong>28</strong></span></div>
+<div class="rrow"><span>Others</span><span class="rrow-num"><strong>24</strong></span></div>
+<div class="rrow"><span>General Inquiry</span><span class="rrow-num"><strong>19</strong></span></div></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">Treatment interest</div><div class="panel-sub">Top categories mentioned</div></div><div style="padding-top:10px;"><div class="rrow"><span>Check-Up</span><span class="rrow-num"><strong>36</strong></span></div>
+<div class="rrow"><span>Cleaning</span><span class="rrow-num"><strong>26</strong></span></div>
+<div class="rrow"><span>Fillings</span><span class="rrow-num"><strong>20</strong></span></div>
+<div class="rrow"><span>Implants</span><span class="rrow-num"><strong>11</strong></span></div>
+<div class="rrow"><span>Crowns</span><span class="rrow-num"><strong>10</strong></span></div>
+<div class="rrow"><span>Whitening</span><span class="rrow-num"><strong>8</strong></span></div></div></div>
+    </div>
+  </div>
+<div class="tab-panel" id="tab-p3">
+    <div class="site-banner">
+      <div class="site-banner-cell">
+        <div class="site-banner-name">Newark - Kirkgate Dental Surgery</div>
+        <div class="site-banner-sub">Live 26 May &middot; 10 days of data &middot; Reception phones only</div>
+        <div class="site-banner-grid">
+          <div class="site-banner-stat"><div class="lbl">Inbound</div><div class="val">395</div></div>
+          <div class="site-banner-stat"><div class="lbl">Outbound</div><div class="val">257</div></div>
+          <div class="site-banner-stat"><div class="lbl">AR (business hours)</div><div class="val warn">79.9<span class="unit">%</span></div></div>
+        </div>
+      </div>
+      <div class="site-banner-cell">
+        <div class="site-banner-name">Context</div>
+        <div class="site-banner-sub">Out-of-hours load &amp; callback speed</div>
+        <div class="site-banner-grid">
+          <div class="site-banner-stat"><div class="lbl">All-hours AR</div><div class="val">78.5<span class="unit">%</span></div></div>
+          <div class="site-banner-stat"><div class="lbl">Missed-call callback</div><div class="val">13m 11s</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gnote" style="margin-top:22px;"><span class="lbl">HOW TO READ THIS</span>
+    The headline answer rate is calculated against this practice's own opening hours, so it is comparable across sites and reflects the calls the team could realistically pick up. 26 May (go-live day) is excluded to remove set-up and test calls; data starts the next working day.</div>
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">Trend</span> Weekly</div>
+      <h2 class="sec-title">In-hours volume &amp; answer rate by week</h2>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><div class="panel-title">Newark - Kirkgate Dental Surgery &middot; weekly (business hours)</div><div class="panel-sub">Bars: inbound calls &middot; Line: answer rate</div></div>
+      <div class="chart-canvas tall"><canvas id="p3WeeklyChart"></canvas></div>
+    </div>
+    <div class="gnote" style="margin-top:18px;"><span class="lbl">READING THE TREND</span> The in-hours answer rate dips in the most recent week while inbound volume holds up. That pattern points to a capacity squeeze at peak times rather than a drop in effort - pair it with the auto-reconnection figures on the Missed Calls tab, which show most of those calls are still recovered downstream.</div>
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">Mix</span> Disposition</div>
+      <h2 class="sec-title">Where inbound calls go (business hours)</h2>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><div class="panel-title">Newark - Kirkgate Dental Surgery &middot; inbound disposition</div><div class="panel-sub">388 in-hours inbound calls</div></div>
+      <div style="padding-top:8px;">
+<div class="funnel-row"><div class="funnel-label">Answered (reached an agent live)</div><div class="funnel-bar"><div class="funnel-bar-fill good" style="width: 79.9%"></div></div><div class="funnel-value">310<span class="pct">79.9%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Pre-queue drop (gave up in IVR menu)</div><div class="funnel-bar"><div class="funnel-bar-fill warn" style="width: 16.5%"></div></div><div class="funnel-value">64<span class="pct">16.5%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Capacity-missed (all lines busy)</div><div class="funnel-bar"><div class="funnel-bar-fill warn" style="width: 0.0%"></div></div><div class="funnel-value">0<span class="pct">0.0%</span></div></div>
+<div class="funnel-row"><div class="funnel-label">Missed (rang the queue, no pickup)</div><div class="funnel-bar"><div class="funnel-bar-fill crit" style="width: 3.6%"></div></div><div class="funnel-value">14<span class="pct">3.6%</span></div></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel"><div class="panel-head"><div class="panel-title">Answer rate by hour</div><div class="panel-sub">In-hours, dot colour flags weak slots</div></div><div class="chart-canvas tall"><canvas id="p3HourlyChart"></canvas></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">Answer rate by day</div><div class="panel-sub">In-hours volume &amp; answer rate</div></div><div class="chart-canvas tall"><canvas id="p3DowChart"></canvas></div></div>
+    </div>
+
+    <div class="two-col" style="margin-top:22px;">
+      <div class="panel"><div class="panel-head"><div class="panel-title">Why patients called</div><div class="panel-sub">Top call purposes</div></div><div style="padding-top:10px;"><div class="rrow"><span>New Appointment Booking</span><span class="rrow-num"><strong>108</strong></span></div>
+<div class="rrow"><span>Appointment Rescheduling</span><span class="rrow-num"><strong>70</strong></span></div>
+<div class="rrow"><span>Existing Appointment Inquiry</span><span class="rrow-num"><strong>20</strong></span></div>
+<div class="rrow"><span>General Inquiry</span><span class="rrow-num"><strong>19</strong></span></div>
+<div class="rrow"><span>Appointment Cancellation</span><span class="rrow-num"><strong>18</strong></span></div>
+<div class="rrow"><span>Others</span><span class="rrow-num"><strong>15</strong></span></div></div></div>
+      <div class="panel"><div class="panel-head"><div class="panel-title">Treatment interest</div><div class="panel-sub">Top categories mentioned</div></div><div style="padding-top:10px;"><div class="rrow"><span>Check-Up</span><span class="rrow-num"><strong>50</strong></span></div>
+<div class="rrow"><span>Fillings</span><span class="rrow-num"><strong>20</strong></span></div>
+<div class="rrow"><span>Cleaning</span><span class="rrow-num"><strong>14</strong></span></div>
+<div class="rrow"><span>Extraction</span><span class="rrow-num"><strong>8</strong></span></div>
+<div class="rrow"><span>Crowns</span><span class="rrow-num"><strong>7</strong></span></div>
+<div class="rrow"><span>Emergency</span><span class="rrow-num"><strong>7</strong></span></div></div></div>
+    </div>
+  </div>
+
+  <!-- EXTENSION LOAD -->
+  <div class="tab-panel" id="tab-extload">
+    <div class="sec-head">
+      <div class="sec-kicker"><span class="tnum">08</span> Extension load</div>
+      <h2 class="sec-title">How answered calls split across the queue</h2>
+      <p class="sec-lead">With sequential ringing, calls ring one extension at a time (20 seconds each) before moving on. Reception 1 - the first extension in the chain - therefore picks up first whenever it is free. The split below shows how answered, non-transferred inbound calls were shared across extensions at each site.</p>
+    </div>
+    <div class="gnote" style="margin-bottom:22px;"><span class="lbl">CONTEXT</span>
+    A couple of practices in the trial have asked about switching from sequential ringing to <strong>simultaneous ringing</strong> (all extensions ring at once). The split below is the early read on how answered calls are distributed under the current sequential set-up - a useful reference point if and when that question is revisited with more data.</div>
+    <div class="grid-2" style="gap:18px;">
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">London - SmileMore Dental Centre</div><div class="panel-sub">161 answered, non-transferred &middot; Reception phones only</div></div>
+      <div style="padding:14px 0 4px;">
+        <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;">
+          <span class="stat-num big crit">83%</span>
+          <span style="color:var(--muted); font-size:13px;">of answered calls picked up by Reception 1 (ext 201)</span>
+        </div>
+        <div class="ext-bar-track"><div class="ext-bar-seg" style="width:83%; background:var(--primary);" title="ext 201: 133 calls">201: 83%</div><div class="ext-bar-seg" style="width:17%; background:var(--accent);" title="ext 202: 28 calls">202: 17%</div></div>
+      </div>
+      <div style="padding-top:14px;"><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--primary);margin-right:8px;"></span>Ext 201 <span style="color:var(--primary); font-weight:600;">&middot; Reception 1 (rings first)</span></span><span class="rrow-num"><strong>133</strong> <span style="color:var(--muted);">(83%)</span></span></div><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);margin-right:8px;"></span>Ext 202</span><span class="rrow-num"><strong>28</strong> <span style="color:var(--muted);">(17%)</span></span></div></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Newmarket - Terrace Dental</div><div class="panel-sub">356 answered, non-transferred &middot; Reception phones only</div></div>
+      <div style="padding:14px 0 4px;">
+        <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;">
+          <span class="stat-num big warn">55%</span>
+          <span style="color:var(--muted); font-size:13px;">of answered calls picked up by Reception 1 (ext 301)</span>
+        </div>
+        <div class="ext-bar-track"><div class="ext-bar-seg" style="width:55%; background:var(--primary);" title="ext 301: 197 calls">301: 55%</div><div class="ext-bar-seg" style="width:45%; background:var(--accent);" title="ext 302: 159 calls">302: 45%</div></div>
+      </div>
+      <div style="padding-top:14px;"><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--primary);margin-right:8px;"></span>Ext 301 <span style="color:var(--primary); font-weight:600;">&middot; Reception 1 (rings first)</span></span><span class="rrow-num"><strong>197</strong> <span style="color:var(--muted);">(55%)</span></span></div><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);margin-right:8px;"></span>Ext 302</span><span class="rrow-num"><strong>159</strong> <span style="color:var(--muted);">(45%)</span></span></div></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Rugby - Jones Dental &amp; Implant Clinic</div><div class="panel-sub">459 answered, non-transferred &middot; 2 reception + 1 back office + 2 office phones (deeper queue)</div></div>
+      <div style="padding:14px 0 4px;">
+        <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;">
+          <span class="stat-num big good">54%</span>
+          <span style="color:var(--muted); font-size:13px;">of answered calls picked up by Reception 1 (ext 1101)</span>
+        </div>
+        <div class="ext-bar-track"><div class="ext-bar-seg" style="width:54%; background:var(--primary);" title="ext 1101: 250 calls">1101: 54%</div><div class="ext-bar-seg" style="width:36%; background:var(--accent);" title="ext 1102: 166 calls">1102: 36%</div><div class="ext-bar-seg" style="width:2%; background:var(--gold);" title="ext 1110: 11 calls"></div><div class="ext-bar-seg" style="width:1%; background:var(--muted);" title="ext 1111: 3 calls"></div><div class="ext-bar-seg" style="width:6%; background:var(--warn);" title="ext 1112: 29 calls"></div></div>
+      </div>
+      <div style="padding-top:14px;"><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--primary);margin-right:8px;"></span>Ext 1101 <span style="color:var(--primary); font-weight:600;">&middot; Reception 1 (rings first)</span></span><span class="rrow-num"><strong>250</strong> <span style="color:var(--muted);">(54%)</span></span></div><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);margin-right:8px;"></span>Ext 1102</span><span class="rrow-num"><strong>166</strong> <span style="color:var(--muted);">(36%)</span></span></div><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gold);margin-right:8px;"></span>Ext 1110</span><span class="rrow-num"><strong>11</strong> <span style="color:var(--muted);">(2%)</span></span></div><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--muted);margin-right:8px;"></span>Ext 1111</span><span class="rrow-num"><strong>3</strong> <span style="color:var(--muted);">(1%)</span></span></div><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--warn);margin-right:8px;"></span>Ext 1112</span><span class="rrow-num"><strong>29</strong> <span style="color:var(--muted);">(6%)</span></span></div></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Newark - Kirkgate Dental Surgery</div><div class="panel-sub">293 answered, non-transferred &middot; Reception phones only</div></div>
+      <div style="padding:14px 0 4px;">
+        <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:12px;">
+          <span class="stat-num big good">48%</span>
+          <span style="color:var(--muted); font-size:13px;">of answered calls picked up by Reception 1 (ext 1151)</span>
+        </div>
+        <div class="ext-bar-track"><div class="ext-bar-seg" style="width:48%; background:var(--primary);" title="ext 1151: 141 calls">1151: 48%</div><div class="ext-bar-seg" style="width:52%; background:var(--accent);" title="ext 1152: 152 calls">1152: 52%</div></div>
+      </div>
+      <div style="padding-top:14px;"><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--primary);margin-right:8px;"></span>Ext 1151 <span style="color:var(--primary); font-weight:600;">&middot; Reception 1 (rings first)</span></span><span class="rrow-num"><strong>141</strong> <span style="color:var(--muted);">(48%)</span></span></div><div class="rrow"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);margin-right:8px;"></span>Ext 1152</span><span class="rrow-num"><strong>152</strong> <span style="color:var(--muted);">(52%)</span></span></div></div>
+    </div>
+    </div>
+    <div class="gnote" style="margin-top:22px;"><span class="lbl">EARLY OBSERVATION</span>
+    Under sequential ringing, Reception 1 (the first extension in the chain) tends to absorb a larger share of calls - most clearly at the reception-only sites with a single busy front desk. Sites with two genuinely shared reception phones, or a deeper queue, look more balanced. Worth re-checking this read with another two to four weeks of data; if the pattern persists, it becomes a stronger argument for the simultaneous-ringing change those practices have asked about.</div>
+    <p style="font-size:13px; color:var(--muted); margin-top:14px; font-style:italic;">Method: counts inbound calls with Call Status &ldquo;Answered&rdquo;, after each site&rsquo;s go-live, with transferred calls (Transfer Index &ne; 1) excluded so each call is credited to the extension that first picked it up. Reception 1 is the lowest-numbered extension in each site&rsquo;s ring chain. Days of data per site vary; treat the short-window reads as indicative.</p>
+  </div>
+
+  <!-- MISSED CALLS -->
+  <div class="tab-panel" id="tab-missed">
+    <div class="sec-head">
+      <div class="sec-kicker"><span class="tnum">09</span> Missed calls recovered</div>
+      <h2 class="sec-title">Missed calls become a working list, not an invisible loss</h2>
+      <p class="sec-lead">VoiceStack splits every non-answered inbound call into a cause, auto-reconnects a share of them, and transcribes voicemails. The "missed-call response time" your team measures is now visible per site.</p>
+    </div>
+    <div class="grid-3">
+      <div class="stat"><div class="stat-label">Hung up in IVR (all hours)</div><div class="stat-num big warn">343</div><div class="stat-note">In-hours only: 235. Whether this is a menu-design or a capacity issue will become clearer with more weeks of data.</div></div>
+      <div class="stat"><div class="stat-label">Lines busy on arrival</div><div class="stat-num big crit">10</div><div class="stat-note">Small numbers so far; worth watching whether these cluster at specific hours.</div></div>
+      <div class="stat"><div class="stat-label">Voicemails captured &amp; tagged</div><div class="stat-num big">51</div><div class="stat-note">Transcribed and searchable; previously lost.</div></div>
+    </div>
+    <div class="sec-head" style="margin-top:30px;">
+      <div class="sec-kicker"><span class="tnum">07.1</span> Callback speed</div>
+      <h2 class="sec-title">How quickly missed calls are returned, by site</h2>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Practice</th><th class="num">Missed-call response time</th><th class="num">Pre-queue drops (all hrs)</th><th class="num">Missed in queue (all hrs)</th><th class="num">Voicemails</th></tr></thead>
+      <tbody>
+<tr><td class="strong">London - SmileMore Dental Centre</td><td class="num">13m 10s</td><td class="num">67</td><td class="num">5</td><td class="num">16</td></tr>
+<tr><td class="strong">Newmarket - Terrace Dental</td><td class="num">8m 48s</td><td class="num">113</td><td class="num">81</td><td class="num">21</td></tr>
+<tr><td class="strong">Rugby - Jones Dental &amp; Implant Clinic</td><td class="num">3m 31s</td><td class="num">92</td><td class="num">24</td><td class="num">6</td></tr>
+<tr><td class="strong">Newark - Kirkgate Dental Surgery</td><td class="num">13m 11s</td><td class="num">71</td><td class="num">14</td><td class="num">8</td></tr>
+      </tbody>
+    </table></div>
+    <div class="gnote" style="margin-top:18px;"><span class="lbl">EARLY READ</span>
+    Rugby is currently returning missed calls fastest (3m 31s); Newark is slowest (13m 11s). The metric did not exist before - having it visible is the first step. Whether to set a group response-time target is a conversation worth having once a few more weeks of data confirm where each site naturally settles.</div>
+  </div>
+
+  <!-- OPPORTUNITIES -->
+  <div class="tab-panel" id="tab-opps">
+    <div class="sec-head">
+      <div class="sec-kicker"><span class="tnum">10</span> Hidden opportunities</div>
+      <h2 class="sec-title">The calls worth the most - and why they didn't book</h2>
+      <p class="sec-lead">VoiceStack scores each call for conversion potential. Across the four sites it has already flagged <strong>213 high-value opportunities</strong> (129 rated High) in just a week or two of data. These were invisible before the trial. Below: the mix per site and the reasons opportunities did not convert to a booking.</p>
+    </div>
+    <div class="grid-2" style="gap:18px;">
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">London - SmileMore Dental Centre</div><div class="panel-sub">30 high-value opportunities flagged</div></div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); margin-top:12px;">
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--good-deep);">High</div><div class="stat-num big good" style="margin-top:4px;">16</div></div>
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--warn);">Medium</div><div class="stat-num big warn" style="margin-top:4px;">1</div></div>
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--muted);">Low</div><div class="stat-num big" style="margin-top:4px;">13</div></div>
+      </div>
+      <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
+        <div><div class="stat-label">Reached an agent</div><div class="stat-num" style="margin-top:4px;">16 of 30</div></div>
+        <div><div class="stat-label">Avg conversion probability</div><div class="stat-num" style="margin-top:4px;">71.6%</div></div>
+      </div>
+      <div class="panel-sub" style="margin-top:18px; margin-bottom:6px; font-weight:600; color:var(--ink);">Why opportunities didn't convert to a booking</div>
+      <div class="rrow"><span>Not Yet Decided</span><span class="rrow-num"><strong>8</strong></span></div>
+<div class="rrow"><span>Pending Agent Action</span><span class="rrow-num"><strong>4</strong></span></div>
+<div class="rrow"><span>Others</span><span class="rrow-num"><strong>3</strong></span></div>
+<div class="rrow"><span>Treatment Not Needed</span><span class="rrow-num"><strong>2</strong></span></div>
+<div class="rrow"><span>Slot Unavailability</span><span class="rrow-num"><strong>2</strong></span></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Newmarket - Terrace Dental</div><div class="panel-sub">72 high-value opportunities flagged</div></div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); margin-top:12px;">
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--good-deep);">High</div><div class="stat-num big good" style="margin-top:4px;">53</div></div>
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--warn);">Medium</div><div class="stat-num big warn" style="margin-top:4px;">1</div></div>
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--muted);">Low</div><div class="stat-num big" style="margin-top:4px;">18</div></div>
+      </div>
+      <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
+        <div><div class="stat-label">Reached an agent</div><div class="stat-num" style="margin-top:4px;">48 of 72</div></div>
+        <div><div class="stat-label">Avg conversion probability</div><div class="stat-num" style="margin-top:4px;">74.5%</div></div>
+      </div>
+      <div class="panel-sub" style="margin-top:18px; margin-bottom:6px; font-weight:600; color:var(--ink);">Why opportunities didn't convert to a booking</div>
+      <div class="rrow"><span>Not Yet Decided</span><span class="rrow-num"><strong>22</strong></span></div>
+<div class="rrow"><span>Pending Agent Action</span><span class="rrow-num"><strong>14</strong></span></div>
+<div class="rrow"><span>Slot Unavailability</span><span class="rrow-num"><strong>5</strong></span></div>
+<div class="rrow"><span>Others</span><span class="rrow-num"><strong>4</strong></span></div>
+<div class="rrow"><span>NHS Not Accepted</span><span class="rrow-num"><strong>3</strong></span></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Rugby - Jones Dental &amp; Implant Clinic</div><div class="panel-sub">58 high-value opportunities flagged</div></div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); margin-top:12px;">
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--good-deep);">High</div><div class="stat-num big good" style="margin-top:4px;">32</div></div>
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--warn);">Medium</div><div class="stat-num big warn" style="margin-top:4px;">2</div></div>
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--muted);">Low</div><div class="stat-num big" style="margin-top:4px;">24</div></div>
+      </div>
+      <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
+        <div><div class="stat-label">Reached an agent</div><div class="stat-num" style="margin-top:4px;">42 of 58</div></div>
+        <div><div class="stat-label">Avg conversion probability</div><div class="stat-num" style="margin-top:4px;">66.8%</div></div>
+      </div>
+      <div class="panel-sub" style="margin-top:18px; margin-bottom:6px; font-weight:600; color:var(--ink);">Why opportunities didn't convert to a booking</div>
+      <div class="rrow"><span>Not Yet Decided</span><span class="rrow-num"><strong>15</strong></span></div>
+<div class="rrow"><span>Pending Agent Action</span><span class="rrow-num"><strong>9</strong></span></div>
+<div class="rrow"><span>Slot Unavailability</span><span class="rrow-num"><strong>6</strong></span></div>
+<div class="rrow"><span>Price Concern</span><span class="rrow-num"><strong>2</strong></span></div>
+<div class="rrow"><span>Others</span><span class="rrow-num"><strong>2</strong></span></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Newark - Kirkgate Dental Surgery</div><div class="panel-sub">53 high-value opportunities flagged</div></div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); margin-top:12px;">
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--good-deep);">High</div><div class="stat-num big good" style="margin-top:4px;">28</div></div>
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--warn);">Medium</div><div class="stat-num big warn" style="margin-top:4px;">1</div></div>
+        <div style="background:var(--surface); padding:14px;"><div class="stat-label" style="color:var(--muted);">Low</div><div class="stat-num big" style="margin-top:4px;">24</div></div>
+      </div>
+      <div style="display:flex; gap:24px; margin-top:16px; flex-wrap:wrap;">
+        <div><div class="stat-label">Reached an agent</div><div class="stat-num" style="margin-top:4px;">42 of 53</div></div>
+        <div><div class="stat-label">Avg conversion probability</div><div class="stat-num" style="margin-top:4px;">62.9%</div></div>
+      </div>
+      <div class="panel-sub" style="margin-top:18px; margin-bottom:6px; font-weight:600; color:var(--ink);">Why opportunities didn't convert to a booking</div>
+      <div class="rrow"><span>Not Yet Decided</span><span class="rrow-num"><strong>11</strong></span></div>
+<div class="rrow"><span>Slot Unavailability</span><span class="rrow-num"><strong>9</strong></span></div>
+<div class="rrow"><span>Advance Payment Required</span><span class="rrow-num"><strong>7</strong></span></div>
+<div class="rrow"><span>Pending Agent Action</span><span class="rrow-num"><strong>6</strong></span></div>
+<div class="rrow"><span>NHS Not Accepted</span><span class="rrow-num"><strong>6</strong></span></div>
+    </div>
+    </div>
+    <div class="gnote" style="margin-top:22px;"><span class="lbl">WHAT TO DO WITH THE LIST</span>
+    The most common non-booking reasons in the data so far are "not yet decided" and "pending agent action" - i.e. warm callers still in play, not lost. The first thing the list enables is the ability to work it: pick up where the call left off, follow up while interest is fresh, and log the outcome. The dollar value depends on what share actually convert; with this short a window, any conversion-rate estimate would be speculative. The point for now is that the list exists at all.</div>
+  </div>
+
+  <!-- CANCELLATIONS -->
+  <div class="tab-panel" id="tab-cancels">
+    <div class="sec-head">
+      <div class="sec-kicker"><span class="tnum">11</span> Cancellations</div>
+      <h2 class="sec-title">Saving the appointment when a patient calls to cancel</h2>
+      <p class="sec-lead">A cancellation call is a chance to reschedule rather than lose the slot. The save rate - cancel-intent calls turned into a reschedule - is now measurable per site, alongside the 323 proactive confirmations the team made (a no-show-prevention lever that didn't exist before).</p>
+    </div>
+    <div class="grid-2" style="gap:18px;">
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">London - SmileMore Dental Centre</div><div class="panel-sub">Inbound cancellation-intent calls</div></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); margin-top:10px;">
+        <div style="background:var(--surface); padding:16px;"><div class="stat-label">Cancel-intent calls</div><div class="stat-num big" style="margin-top:6px;">6</div></div>
+        <div style="background:var(--surface); padding:16px;"><div class="stat-label" style="color:var(--warn-deep,var(--warn));">Saved as reschedule</div><div class="stat-num big warn" style="margin-top:6px;">1</div></div>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:12px; margin-top:16px;"><span class="stat-num big warn">16.7%</span><span style="color:var(--muted); font-size:13px;">save rate</span></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Newmarket - Terrace Dental</div><div class="panel-sub">Inbound cancellation-intent calls</div></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); margin-top:10px;">
+        <div style="background:var(--surface); padding:16px;"><div class="stat-label">Cancel-intent calls</div><div class="stat-num big" style="margin-top:6px;">18</div></div>
+        <div style="background:var(--surface); padding:16px;"><div class="stat-label" style="color:var(--warn-deep,var(--warn));">Saved as reschedule</div><div class="stat-num big warn" style="margin-top:6px;">1</div></div>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:12px; margin-top:16px;"><span class="stat-num big warn">5.6%</span><span style="color:var(--muted); font-size:13px;">save rate</span></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Rugby - Jones Dental &amp; Implant Clinic</div><div class="panel-sub">Inbound cancellation-intent calls</div></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); margin-top:10px;">
+        <div style="background:var(--surface); padding:16px;"><div class="stat-label">Cancel-intent calls</div><div class="stat-num big" style="margin-top:6px;">28</div></div>
+        <div style="background:var(--surface); padding:16px;"><div class="stat-label" style="color:var(--warn-deep,var(--warn));">Saved as reschedule</div><div class="stat-num big warn" style="margin-top:6px;">3</div></div>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:12px; margin-top:16px;"><span class="stat-num big warn">10.7%</span><span style="color:var(--muted); font-size:13px;">save rate</span></div>
+    </div>
+<div class="panel">
+      <div class="panel-head"><div class="panel-title">Newark - Kirkgate Dental Surgery</div><div class="panel-sub">Inbound cancellation-intent calls</div></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); margin-top:10px;">
+        <div style="background:var(--surface); padding:16px;"><div class="stat-label">Cancel-intent calls</div><div class="stat-num big" style="margin-top:6px;">18</div></div>
+        <div style="background:var(--surface); padding:16px;"><div class="stat-label" style="color:var(--warn-deep,var(--warn));">Saved as reschedule</div><div class="stat-num big warn" style="margin-top:6px;">2</div></div>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:12px; margin-top:16px;"><span class="stat-num big warn">11.1%</span><span style="color:var(--muted); font-size:13px;">save rate</span></div>
+    </div>
+    </div>
+    <div class="gnote" style="margin-top:22px;"><span class="lbl">EARLY READ</span>
+    Cancellation volumes are small over this short window, so per-site save rates are noisy and not yet a reliable basis for action. The valuable change is that the metric is now visible at all - it can be tracked as more weeks of data come in, and the team can start to see where reschedule conversations are or aren't happening.</div>
+  </div>
+
+  <!-- TEAM & COACHING -->
+  <div class="tab-panel" id="tab-team">
+    <div class="sec-head">
+      <div class="sec-kicker"><span class="tnum">10</span> Team &amp; coaching</div>
+      <h2 class="sec-title">Per-agent visibility, with handling scores</h2>
+      <p class="sec-lead">VoiceStack scores eight handling dimensions on each call. With only days of data per site, sample sizes per agent are still small - read the figures below as a first look rather than a coaching verdict.</p>
+    </div>
+    <div class="callout warn">
+      <div class="callout-number">29.8%</div>
+      <div class="callout-text"><span class="label">CALL CLOSING &middot; "NEEDS IMPROVEMENT" (combined)</span>
+      Across the group, this share of scored calls is flagged for the close - confirming the next step, the appointment, and a clear sign-off. The rate varies a lot by site so far, so the picture will sharpen with more weeks of data before any specific coaching recommendation is warranted.</div>
+    </div>
+    <div class="sec-head" style="margin-top:30px;">
+      <div class="sec-kicker"><span class="tnum">10.1</span> Agent scorecard</div>
+      <h2 class="sec-title">Who handled the calls</h2>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Agent</th><th>Site</th><th class="num">Calls</th><th class="num">In</th><th class="num">Out</th><th>Sentiment</th><th>Call closing</th></tr></thead>
+      <tbody>
+<tr><td class="strong">Claire Stubbs</td><td>Newark</td><td class="num">292</td><td class="num">131</td><td class="num">161</td><td><span class="pill good">Positive</span></td><td><span class="pill neutral">At Par</span></td></tr>
+<tr><td class="strong">Helle Aabech</td><td>Newmarket</td><td class="num">226</td><td class="num">123</td><td class="num">103</td><td><span class="pill good">Positive</span></td><td><span class="pill neutral">At Par</span></td></tr>
+<tr><td class="strong">Ivy Mtomba</td><td>Newmarket</td><td class="num">210</td><td class="num">132</td><td class="num">78</td><td><span class="pill good">Positive</span></td><td><span class="pill neutral">At Par</span></td></tr>
+<tr><td class="strong">Megan Redhead</td><td>Rugby</td><td class="num">195</td><td class="num">84</td><td class="num">111</td><td><span class="pill good">Positive</span></td><td><span class="pill neutral">At Par</span></td></tr>
+<tr><td class="strong">Manoosh Jalali</td><td>London</td><td class="num">188</td><td class="num">80</td><td class="num">108</td><td><span class="pill good">Positive</span></td><td><span class="pill warn">Needs work</span></td></tr>
+<tr><td class="strong">Clare Ash</td><td>Rugby</td><td class="num">168</td><td class="num">71</td><td class="num">97</td><td><span class="pill good">Positive</span></td><td><span class="pill warn">Needs work</span></td></tr>
+<tr><td class="strong">Claire Charles</td><td>Newark</td><td class="num">163</td><td class="num">98</td><td class="num">65</td><td><span class="pill good">Positive</span></td><td><span class="pill good">Excellent</span></td></tr>
+<tr><td class="strong">Lorna Summerscales</td><td>Newmarket</td><td class="num">100</td><td class="num">44</td><td class="num">56</td><td><span class="pill good">Positive</span></td><td><span class="pill neutral">At Par</span></td></tr>
+<tr><td class="strong">Helen Koku</td><td>Rugby</td><td class="num">95</td><td class="num">15</td><td class="num">80</td><td><span class="pill good">Positive</span></td><td><span class="pill good">Excellent</span></td></tr>
+<tr><td class="strong">Jo Seljamae</td><td>Newmarket</td><td class="num">78</td><td class="num">41</td><td class="num">37</td><td><span class="pill good">Positive</span></td><td><span class="pill neutral">At Par</span></td></tr>
+<tr><td class="strong">Tamara Williams</td><td>London</td><td class="num">72</td><td class="num">27</td><td class="num">45</td><td><span class="pill good">Positive</span></td><td><span class="pill neutral">At Par</span></td></tr>
+<tr><td class="strong">Nichola Knapman</td><td>Newark</td><td class="num">68</td><td class="num">52</td><td class="num">16</td><td><span class="pill good">Positive</span></td><td><span class="pill neutral">At Par</span></td></tr>
+<tr><td class="strong">Gaye Alberts</td><td>Rugby</td><td class="num">66</td><td class="num">35</td><td class="num">31</td><td><span class="pill good">Positive</span></td><td><span class="pill warn">Needs work</span></td></tr>
+      </tbody>
+    </table></div>
+    <p style="font-size:13px; color:var(--muted); margin-top:14px; font-style:italic;">Sentiment and closing show each agent's most common rating over the trial. With small per-agent sample sizes, a single bad day can swing the rating; this is a starting point for conversation rather than a basis for individual remediation.</p>
+  </div>
+
+  <!-- WHAT TO WATCH -->
+  <div class="tab-panel" id="tab-watch">
+    <div class="sec-head">
+      <div class="sec-kicker"><span class="tnum">11</span> What to watch</div>
+      <h2 class="sec-title">Patterns to watch as more data comes in</h2>
+      <p class="sec-lead">With 10–18 days of data per site, this is still a short window to commit to specific operational changes. What it is good for is identifying the patterns worth tracking. Another few weeks of data should let each of these resolve into either a real signal or noise.</p>
+    </div>
+
+    <div class="priority-grid">
+      <div class="pcard"><div class="pcard-tag">W1</div><div class="pcard-title">Does pre-queue drop settle, or stay high?</div><div class="pcard-body">The share of inbound callers hanging up inside the IVR varies a lot between sites in this short window. If the spread persists once each site has 3–4 weeks of data, that becomes a stronger argument for looking at the IVR set-up. If it evens out, the early variance was likely just noise.</div><div class="pcard-action">Re-check in 2–4 weeks</div></div>
+      <div class="pcard"><div class="pcard-tag">W2</div><div class="pcard-title">Does the Reception 1 imbalance hold?</div><div class="pcard-body">Under sequential ringing, the first extension in the chain is currently absorbing a larger share of answered calls at some sites. If that holds with more data, it strengthens the case for the simultaneous-ringing change a couple of practices have already asked about - but a couple of weeks is too short to commit on.</div><div class="pcard-action">Re-check in 2–4 weeks</div></div>
+      <div class="pcard"><div class="pcard-tag">W3</div><div class="pcard-title">Are flagged opportunities being worked?</div><div class="pcard-body">213 high-value opportunities have been flagged so far. The follow-up question is whether the team is acting on the list - calling back, closing the loop, logging outcomes. The data will tell us soon enough; right now we can see only that the list exists.</div><div class="pcard-action">Track outcomes weekly</div></div>
+      <div class="pcard"><div class="pcard-tag">W4</div><div class="pcard-title">Where does callback time settle by site?</div><div class="pcard-body">Missed-call response time is now measurable per site but is sensitive to a small number of calls in this short window. Once each site has a few more weeks of data, a sensible group target (if there should be one at all) becomes a much easier conversation to have.</div><div class="pcard-action">Track weekly</div></div>
+    </div>
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">11.1</span> What we can already say</div>
+      <h2 class="sec-title">The visibility change is real</h2>
+      <p class="sec-lead">Independent of what changes the data eventually justifies, one thing is already true: there is now a per-call record across all 4 sites - who called, why, what happened, what to do next - where previously there was only a monthly total. That step-change in visibility is what makes any of the conversations above possible at all.</p>
+    </div>
+    <div class="hmetrics" style="margin-top:14px;">
+      <div class="hmetric"><div class="hmetric-label">Calls now visible</div><div class="hmetric-value">3,276</div><div class="hmetric-note">Every call tagged, scored, searchable</div></div>
+      <div class="hmetric"><div class="hmetric-label">High-value opportunities flagged</div><div class="hmetric-value">213</div><div class="hmetric-note good">129 rated High intent</div></div>
+      <div class="hmetric"><div class="hmetric-label">Proactive confirmations made</div><div class="hmetric-value">323</div><div class="hmetric-note">No-show prevention now trackable</div></div>
+      <div class="hmetric"><div class="hmetric-label">Voicemails captured</div><div class="hmetric-value">51</div><div class="hmetric-note">Transcribed and searchable</div></div>
+    </div>
+
+    <div class="sec-head" style="margin-top:32px;">
+      <div class="sec-kicker"><span class="tnum">11.2</span> What another month of data would tell us</div>
+      <h2 class="sec-title">Next data check-in</h2>
+    </div>
+    <div class="plan">
+      <div class="pcol"><div class="pcol-head"><div class="pcol-phase">Next 2 weeks</div><div class="pcol-days">Let the trends settle</div></div><div class="pcol-body" style="padding:16px; font-size:14px; line-height:1.6;">Carry on as-is. No operational changes yet - the data window is too short to risk introducing changes that would muddy the signal. The trial keeps running and the metrics keep accumulating.</div></div>
+      <div class="pcol"><div class="pcol-head"><div class="pcol-phase">At 3–4 weeks</div><div class="pcol-days">First real read</div></div><div class="pcol-body" style="padding:16px; font-size:14px; line-height:1.6;">With each site at 3–4 weeks of data, the per-site answer rate, pre-queue drop and callback time should be much more stable. Re-run this report; the patterns that hold are the ones worth acting on.</div></div>
+      <div class="pcol"><div class="pcol-head"><div class="pcol-phase">At ~6 weeks</div><div class="pcol-days">Decide</div></div><div class="pcol-body" style="padding:16px; font-size:14px; line-height:1.6;">By then there will be enough data to support specific, evidence-backed decisions - including the simultaneous-ringing question, any IVR adjustments, callback-time targets, and whether to extend the rollout to further practices.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + t).classList.add('active');
+      window.scrollTo({top:0, behavior:'smooth'});
+      setTimeout(() => { (window.__charts||[]).forEach(c => { try { c.resize(); } catch(e){} }); }, 60);
+    });
+  });
+  const C = { ink:'#0f0b2e', primary:'#4c3ce8', primaryBg:'#e8e5ff', muted:'#6b6890', line:'#e4e1f5', crit:'#C23B2A', warn:'#B07418', good:'#15803d', gold:'#d4a853' };
+  window.__charts = [];
+  Chart.defaults.font.family = "'Geist', sans-serif";
+  Chart.defaults.color = C.muted;
+  function weekly(id, labels, vol, ar, lineColor) {
+    const el = document.getElementById(id); if (!el) return;
+    const _c = new Chart(el, { data: { labels: labels, datasets: [
+      { type:'bar', label:'Inbound calls', data: vol, backgroundColor: C.primaryBg, borderColor: C.primary, borderWidth:1, yAxisID:'y', borderRadius:3, order:2 },
+      { type:'line', label:'Answer rate', data: ar, borderColor: lineColor, backgroundColor: lineColor, borderWidth:2.5, pointRadius:5, pointBackgroundColor: lineColor, pointBorderColor:'#fff', pointBorderWidth:2, tension:0.25, yAxisID:'y1', order:1 }
+    ]}, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, padding:12, usePointStyle:true}}}, scales:{ x:{grid:{display:false}}, y:{position:'left', grid:{color:C.line}, beginAtZero:true, title:{display:true,text:'Calls'}}, y1:{position:'right', grid:{display:false}, min:0, max:100, ticks:{callback:v=>v+'%'}, title:{display:true,text:'AR'}} } } });
+    window.__charts.push(_c);
+  }
+  function hourly(id, labels, ar, vol) {
+    const el = document.getElementById(id); if (!el) return;
+    const _c = new Chart(el, { type:'line', data:{ labels:labels, datasets:[{ label:'Answer rate', data:ar, borderColor:C.primary, backgroundColor:'rgba(76,60,232,0.08)', borderWidth:2.5, pointRadius:5, pointBackgroundColor: ar.map(v=>v<35?C.crit:v<55?C.warn:C.good), pointBorderColor:'#fff', pointBorderWidth:1.5, tension:0.3, fill:true }]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>'AR: '+c.parsed.y+'% · '+vol[c.dataIndex]+' calls'}}}, scales:{ y:{grid:{color:C.line}, min:0, max:100, ticks:{callback:v=>v+'%'}}, x:{grid:{display:false}} } } });
+    window.__charts.push(_c);
+  }
+  function dow(id, labels, vol, ar) {
+    const el = document.getElementById(id); if (!el) return;
+    const _c = new Chart(el, { data:{ labels:labels, datasets:[
+      { type:'bar', label:'Inbound calls', data:vol, backgroundColor:'#efedf9', borderColor:C.line, borderWidth:1, yAxisID:'y', borderRadius:3, order:2 },
+      { type:'line', label:'Answer rate', data:ar, borderColor:C.ink, backgroundColor:C.ink, borderWidth:2.5, pointRadius:5, pointBackgroundColor: ar.map(v=>v<30?C.crit:v<50?C.warn:C.good), pointBorderColor:'#fff', pointBorderWidth:1.5, tension:0.2, yAxisID:'y1', order:1 }
+    ]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, padding:12, usePointStyle:true}}}, scales:{ x:{grid:{display:false}}, y:{position:'left', grid:{color:C.line}, beginAtZero:true, title:{display:true,text:'Calls'}}, y1:{position:'right', grid:{display:false}, min:0, max:100, ticks:{callback:v=>v+'%'}, title:{display:true,text:'AR'}} } } });
+    window.__charts.push(_c);
+  }
+    weekly('p0WeeklyChart', ["W of 18 May", "W of 25 May", "W of 01 Jun"], [52, 64, 81], [76.9, 75.0, 88.9], C.ink);
+  hourly('p0HourlyChart', ["8:00", "9:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00"], [27.3, 83.3, 86.1, 85.0, 80.6, 87.5, 83.3, 85.7], [11, 30, 36, 20, 36, 16, 24, 21]);
+  dow('p0DowChart', ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], [23, 55, 39, 46, 31, 3], [82.6, 80.0, 79.5, 84.8, 87.1, 0.0]);
+  weekly('p1WeeklyChart', ["W of 18 May", "W of 25 May", "W of 01 Jun"], [119, 166, 256], [71.4, 69.9, 73.4], C.primary);
+  hourly('p1HourlyChart', ["8:00", "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"], [61.8, 80.5, 71.3, 82.9, 82.5, 43.7, 82.1, 79.4, 84.6], [76, 87, 94, 41, 40, 71, 56, 63, 13]);
+  dow('p1DowChart', ["Mon", "Tue", "Wed", "Thu", "Fri"], [57, 112, 123, 134, 115], [52.6, 79.5, 72.4, 77.6, 67.0]);
+  weekly('p2WeeklyChart', ["W of 18 May", "W of 25 May", "W of 01 Jun"], [41, 210, 331], [85.4, 80.5, 83.4], C.ink);
+  hourly('p2HourlyChart', ["8:00", "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"], [84.5, 88.6, 81.8, 72.1, 76.9, 78.6, 82.7, 91.4, 86.7, 83.9, 71.4], [58, 70, 77, 61, 65, 56, 52, 58, 45, 31, 7]);
+  dow('p2DowChart', ["Mon", "Tue", "Wed", "Thu", "Fri"], [73, 104, 137, 110, 158], [72.6, 82.7, 83.2, 86.4, 83.5]);
+  weekly('p3WeeklyChart', ["W of 25 May", "W of 01 Jun"], [119, 269], [85.7, 77.3], C.primary);
+  hourly('p3HourlyChart', ["8:00", "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"], [67.3, 66.7, 69.8, 95.3, 93.1, 73.3, 94.6, 90.5, 84.4, 76.9], [52, 57, 53, 43, 29, 30, 37, 42, 32, 13]);
+  dow('p3DowChart', ["Mon", "Tue", "Wed", "Thu", "Fri"], [78, 44, 123, 79, 64], [47.4, 79.5, 89.4, 88.6, 90.6]);
+</script>
+
+</body>
+</html>
